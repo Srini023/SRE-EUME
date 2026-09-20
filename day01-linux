@@ -1,0 +1,154 @@
+⭐ DAY 1 — Linux Deep Dive
+🎯 Goal: Understand systemd, processes, cgroups, namespaces
+📌 Task: Inspect running services
+📦 Deliverable: Linux troubleshooting notes (you will store this in GitHub)
+✅ 1. What you need to learn today
+You only need four core Linux concepts — these are the ones SRE interviews actually test:
+
+1. systemd
+Manages services (units)
+
+Controls startup, shutdown, dependencies
+
+Commands:
+
+systemctl status <service>
+
+systemctl restart <service>
+
+systemctl list-units --type=service
+
+2. Processes
+Foreground vs background
+
+Parent/child processes
+
+Commands:
+
+ps aux
+
+top / htop
+
+pstree
+
+3. cgroups
+Control CPU, memory, I/O limits
+
+Used heavily in Docker & Kubernetes
+
+Commands:
+
+ls /sys/fs/cgroup
+
+systemd-cgls
+
+4. namespaces
+Provide isolation (PID, NET, MNT, IPC)
+
+Used in containers
+
+Commands:
+
+lsns
+
+nsenter
+
+These four concepts form the foundation of Kubernetes, Docker, system troubleshooting, and SRE on-call work.
+
+////////////////////////////--------------------------------------------/////////////////////////////////////////////////////
+
+
+Task A — Inspect running services
+
+systemctl list-units --type=service --state=running
+systemctl status ssh
+
+# Verify systemd init system state
+systemctl is-system-running
+
+# List all actively loaded and running background units
+systemctl list-units --type=service --state=running
+
+
+
+Task B — Inspect processes
+ps aux --sort=-%cpu | head
+pstree -p
+
+Task C — Inspect cgroups
+systemd-cgls
+# View the cgroup tree hierarchy attached to your active shell session
+cat /proc/$$/cgroup
+# Check system-wide cgroup performance mounts
+mount | grep cgroup
+
+Task D — Inspect namespaces
+
+# List all active system namespaces and their tracking IDs
+lsns
+# View the symlinked namespace descriptors mapped directly to your current shell process
+ls -la /proc/$$/ns/
+nsenter --target <PID> --mount --uts --ipc --net --pid
+
+===========================================================================
+
+1. systemd notes
+What systemd does
+
+Commands you used
+
+Example output
+
+2. Process notes
+How to identify CPU/memory hogs
+
+How to trace parent/child processes
+
+3. cgroups notes
+Why cgroups matter for containers
+
+Example output from systemd-cgls
+
+4. namespaces notes
+Why namespaces matter for isolation
+
+Example output from lsns
+
+5. Troubleshooting checklist
+A simple checklist you can reuse:
+
+Check service status
+
+Check logs
+
+Check process tree
+
+Check cgroups
+
+Check namespaces
+
+
+===================================================================================
+
+# Ensure you are inside your portfolio folder
+cd ~/sre-portfolio
+
+# Write the markdown deliverable file directly
+cat << 'EOF' > week1-day1/linux_troubleshooting_notes.md
+# SRE Linux Troubleshooting Core Notes - Day 1
+
+## 1. Process & Systemd Triage
+* Use `systemctl status <service>` to evaluate the execution track, PID, and recent logs of a unit.
+* Check kernel-level service logs directly using `journalctl -u <service-name> --no-pager | tail -n 50`.
+
+## 2. Kernel Namespace Analysis
+* Namespaces isolate what a process can *see*.
+* Core namespaces include: `pid` (processes), `net` (network interfaces), `mnt` (mount points), `ipc` (system memory channels), `uts` (hostnames), and `user` (UID/GID mappings).
+* Triage command: `sudo nsenter -t <target-pid> -n -m` allows an SRE to attach to a running process's network and mount namespaces for deep packet sniffing or filesystem auditing.
+
+## 3. Control Groups (cgroups) Diagnostics
+* cgroups isolate what a process can *use*.
+* When a process exceeds its memory allocation boundary inside a container, the kernel throws an `OOMKilled` (Out Of Memory) event.
+* Triage track: Inspect `/var/log/kern.log` or execute `dmesg -T | grep -i oom` to capture hardware execution terminations.
+EOF
+
