@@ -1,0 +1,586 @@
+1. Audit Local DNS Resolution Stack
+
+# View active DNS servers and resolution profiles managed by systemd
+resolvectl status
+
+# Trace a real-time DNS resolution path step-by-step
+dig +trace google.com
+
+2. Inspect the Routing Table & Default GatewaysExamine how your operating system makes packet forwarding decisions:
+
+# Display the active kernel routing table with interface assignments
+ip route show
+
+# Trace the exact network hops a packet takes to leave your local environment
+traceroute -I 8.8.8.8
+
+
+3. Analyze Local Packet Filters & FirewallsReview how access control rules are mapped onto your network interfaces:
+
+bash# Check the execution status of the Uncomplicated Firewall layer
+sudo ufw status
+
+# Look under the hood at the low-level kernel iptables filter chains
+sudo iptables -L -n -v
+
+
+# Ensure you are in your portfolio repository space
+cd ~/sre-portfolio
+
+# Write the networking markdown reference file directly
+cat << 'EOF' > week1-day2/networking_fundamentals_reference.md
+# SRE Core Networking Runbook - Day 2
+
+## 1. Domain Name Resolution (DNS) Triaging
+* **AWS Structure:** Route 53 routes public queries, while the internal AWS Resolver (`+2` of the VPC CIDR network) handles private hosted zones.
+* **GCP Structure:** Cloud DNS acts as a highly resilient metadata service mapped internally to the Anycast address `169.254.169.254`.
+* **SRE Incident Triage Track:** Run `nslookup <endpoint>` or `dig +short <endpoint>` to confirm record existence. Check for stale caches by running `sudo resolvectl flush-caches`.
+
+## 2. Dynamic Routing & Network Address Translation (NAT)
+* **AWS Strategy:** Highly structural. Each subnetwork explicitly links to a custom VPC Route Table. For secure private subnets to reach out, you must map a route target (`0.0.0.0/0`) explicitly pointing to an AWS NAT Gateway.
+* **GCP Strategy:** Fully software-defined. Routes are global across all regions. Cloud NAT attaches to Cloud Routers, translating egress traffic without mapping fixed gateway hardware appliances onto specific subnets.
+
+## 3. Firewall Boundaries (Zero Trust Contexts)
+* **Stateful vs Stateless:** AWS Security Groups are stateful (allowing return traffic automatically) and handle instance boundaries, while Network ACLs (NACLs) are stateless and handle subnet perimeters.
+* **Tag-Based Firewalls:** GCP firewalls handle perimeters globally via target network tags or service accounts attached to VMs, completely eliminating the need to hardcode specific IP blocks across firewall groups.
+EOF
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+⭐ Day 2 — Networking Fundamentals (SRE/DevOps Level)
+🎯 Core takeaway
+You must understand how packets move, how networks are segmented, how services discover each other, and how cloud networking mirrors traditional networking.
+
+This day covers the 5 pillars:
+
+IP addressing & CIDR
+
+Routing
+
+NAT
+
+Firewalls & Security Groups
+
+DNS
+
+Each section includes concept → commands → cloud mapping → interview questions.
+
+1️⃣ IP Addressing & CIDR
+✔ What you must know
+IPv4 structure
+
+Private vs public IP
+
+CIDR notation
+
+Subnetting logic
+
+Why cloud networks use CIDR blocks
+
+✔ Practical commands
+ip a
+ip addr show
+ipcalc 10.0.0.0/24
+
+
+✔ Cloud mapping
+AWS VPC, Azure VNets, GCP VPC all use CIDR blocks like:
+10.0.0.0/16
+10.1.0.0/24
+
+
+2️⃣ Routing
+✔ What you must know
+Default gateway
+
+Route tables
+
+How packets choose next hop
+
+Static vs dynamic routing
+
+Cloud routing (VPC route tables)
+
+ip r
+route -n
+traceroute google.com
+
+✔ Cloud mapping
+AWS route table example:
+
+Destination	Target
+10.0.0.0/16	local
+0.0.0.0/0	igw-12345
+
+
+3️⃣ NAT (Network Address Translation)
+✔ What you must know
+SNAT (Source NAT)
+
+DNAT (Destination NAT)
+
+Why private servers need NAT to reach the internet
+
+NAT Gateway vs Internet Gateway
+
+sudo iptables -t nat -L -n -v
+
+
+✔ Cloud mapping
+AWS:
+
+NAT Gateway → private subnet → internet
+
+Internet Gateway → public subnet → internet
+
+
+4️⃣ Firewalls & Security Layers
+✔ What you must know
+Linux firewall (iptables / nftables)
+
+Cloud firewalls (Security Groups, NACLs)
+
+Inbound vs outbound rules
+
+Stateful vs stateless filtering
+
+sudo iptables -L
+sudo ufw status
+sudo ufw allow 22/tcp
+
+✔ Cloud mapping
+AWS:
+
+Security Groups → stateful
+
+NACLs → stateless
+
+5️⃣ DNS (Critical for SRE)
+✔ What you must know
+A, AAAA, CNAME, MX, TXT
+
+Recursive vs authoritative DNS
+
+TTL
+
+Internal DNS in cloud
+
+Service discovery in Kubernetes
+
+dig google.com
+nslookup github.com
+host amazon.com
+
+✔ Cloud mapping
+AWS Route53
+GCP Cloud DNS
+Azure DNS
+
+
+
+Day 2 Hands‑On Tasks (Do these today)
+
+1. Inspect your Linux network
+ip a
+ip r
+
+2. Use dig to resolve DNS
+dig github.com
+dig +trace google.com
+
+3. Create a simple firewall rule
+sudo ufw allow 22/tcp
+sudo ufw enable
+
+4. Visualize NAT on your system
+sudo iptables -t nat -L -n -v
+
+
+5. Draw your own VPC diagram
+1 VPC
+
+2 subnets (public/private)
+
+IGW
+
+NAT Gateway
+
+Route tables
+
+This is exactly what interviewers expect.
+
+🧠 Day 2 Interview Simulation (Europe + North America)
+Europe-style questions
+Explain CIDR and subnetting.
+
+What is the difference between routing and switching?
+
+How does NAT work in cloud networks?
+
+North America-style questions
+Walk me through how a packet travels from a private EC2 instance to the internet.
+
+Explain DNS resolution step-by-step.
+
+What is the difference between a Security Group and a firewall?
+
+
+🔵 LAB PART 1 — Inspect Your Network (Linux)
+1. View all network interfaces
+ip a
+
+2. View routing table
+ip r
+route -n
+
+3. Identify your default gateway
+default via <gateway-ip> dev eth0
+
+4. Test packet path
+traceroute google.com
+
+🔵 LAB PART 2 — CIDR & Subnetting
+
+Install ipcalc
+sudo apt install ipcalc -y
+
+
+2. Calculate subnet details
+ipcalc 10.0.0.0/24
+ipcalc 10.0.0.0/16
+
+Understand:
+
+Network
+
+Broadcast
+
+Host range
+
+Number of hosts
+
+This is exactly what interviewers expect.
+
+
+🔵 LAB PART 3 — NAT Simulation on Linux
+
+1. View NAT table
+sudo iptables -t nat -L -n -v
+
+You will see:
+
+MASQUERADE (SNAT)
+
+PREROUTING (DNAT)
+
+2. Enable NAT on your machine (simulating a NAT Gateway)
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+This is exactly how cloud NAT Gateways work internally.
+
+🔵 LAB PART 4 — Firewall Rules (Linux)
+1. Check firewall status
+sudo ufw status
+
+2. Allow SSH
+sudo ufw allow 22/tcp
+
+3. Enable firewall
+sudo ufw enable
+
+4. Block a port (simulate NACL deny rule)
+sudo ufw deny 8080/tcp
+
+5. Verify
+sudo ufw status numbered
+
+🔵 LAB PART 5 — DNS Deep Dive
+
+1. Basic DNS lookup
+dig github.com
+
+2. Full DNS trace
+dig +trace google.com
+
+3. Resolve using host
+host amazon.com
+
+4. Resolve using nslookup
+nslookup microsoft.com
+
+What to observe:
+A records
+
+CNAME
+
+TTL
+
+Authoritative servers
+
+Recursive resolution path
+
+This is exactly how cloud DNS (Route53, Cloud DNS, Azure DNS) works.
+
+
+🔵 LAB PART 6 — Build a Mini VPC Diagram (Required)
+VPC: 10.0.0.0/16
+ ├── Public Subnet: 10.0.1.0/24
+ │     ├── EC2 (public IP)
+ │     └── Internet Gateway
+ └── Private Subnet: 10.0.2.0/24
+       ├── EC2 (no public IP)
+       └── NAT Gateway
+
+Route tables:
+
+Public subnet route table
+10.0.0.0/16 → local
+0.0.0.0/0 → Internet Gateway
+
+Private subnet route table
+10.0.0.0/16 → local
+0.0.0.0/0 → NAT Gateway
+
+This is the most common interview question in Europe & North America.
+
+========================================================================================================================
+
+
+⭐ Day 2 — Full Answers to All 20 Networking Interview Questions
+🔵 1. Explain the difference between /16, /24, and /32 CIDR blocks.
+/16 → 65,536 IPs → large network (VPC-level)
+
+/24 → 256 IPs → typical subnet size
+
+/32 → 1 IP → used for identifying a single host (e.g., route entries, firewall rules)
+
+CIDR controls how many bits are used for the network portion.
+
+🔵 2. Why do cloud providers use private IP ranges like 10.0.0.0/8?
+Because private IPs:
+
+Don’t require public IPv4 allocation
+
+Are secure (not routable on the internet)
+
+Allow massive internal networks
+
+Enable VPC isolation
+
+Clouds map private IPs → public IPs using NAT.
+
+🔵 3. What is the purpose of a subnet, and how does it improve network design?
+Subnets:
+
+Segment networks for security
+
+Control routing
+
+Separate public/private workloads
+
+Reduce broadcast domains
+
+Allow fine-grained access control
+
+Clouds use subnets to isolate workloads (DB, app, bastion).
+
+🔵 4. How do you calculate the number of hosts in a subnet?
+Formula:
+
+Hosts
+=
+2
+(
+32
+−
+CIDR
+)
+−
+2
+Example:
+
+/24 → 
+2
+8
+−
+2
+=
+254
+
+/16 → 
+2
+16
+−
+2
+=
+65
+,
+534
+
+Clouds reserve 5 IPs per subnet.
+
+🔵 5. What is the difference between public IP, private IP, and elastic IP?
+Private IP → internal communication
+
+Public IP → internet-facing
+
+Elastic IP (AWS) → static public IP that persists across instance restarts
+
+🔵 6. What is a default route, and why is it required?
+Default route:
+
+Code
+0.0.0.0/0 → next-hop
+Used when no specific route matches.
+Required for internet access or external networks.
+
+🔵 7. Explain how a packet travels from a private subnet to the internet.
+Instance sends packet → default route
+
+Route table sends traffic → NAT Gateway
+
+NAT Gateway performs SNAT (private → public IP)
+
+Packet goes to Internet Gateway
+
+Response returns → NAT Gateway → instance
+
+🔵 8. What is the difference between static and dynamic routing?
+Static routing → manually configured, predictable
+
+Dynamic routing → uses protocols (BGP, OSPF) to learn routes automatically
+
+Cloud VPCs use static routing.
+
+🔵 9. How does a VPC route table differ from a traditional router’s routing table?
+VPC route tables:
+
+Are software-defined
+
+Apply per subnet
+
+Cannot run dynamic routing protocols
+
+Only support destination → target mappings (IGW, NAT, peering)
+
+Routers support dynamic routing, metrics, and multiple interfaces.
+
+🔵 10. What happens when a route is missing or misconfigured?
+Packets drop
+
+No connectivity
+
+Timeouts
+
+Traceroute stops at last reachable hop
+
+Cloud logs show “blackhole” routes
+
+🔵 11. Explain SNAT vs DNAT with real examples.
+SNAT (Source NAT)  
+Private → public
+Example: EC2 in private subnet accessing internet.
+
+DNAT (Destination NAT)  
+Public → private
+Example: Load balancer forwarding traffic to backend servers.
+
+🔵 12. Why do private subnets require a NAT Gateway?
+Because private instances:
+
+Have no public IP
+
+Cannot reach the internet directly
+
+Need outbound access for updates, package installs
+
+Must remain unreachable from outside
+
+NAT provides secure outbound-only connectivity.
+
+🔵 13. What is the difference between an Internet Gateway and a NAT Gateway?
+Feature	Internet Gateway	NAT Gateway
+Direction	Inbound + outbound	Outbound only
+Requires public IP	Yes	No
+Used by	Public subnets	Private subnets
+Security	Exposes instance	Keeps instance private
+
+
+🔵 14. How does port address translation (PAT) work?
+PAT maps multiple private IPs → one public IP using different port numbers.
+
+Example:
+
+Code
+10.0.2.15:5000 → 52.10.20.30:40001
+10.0.2.16:5000 → 52.10.20.30:40002
+Used by NAT Gateways.
+
+🔵 15. Difference between stateful and stateless firewalls.
+Stateful  
+Tracks connection state
+Return traffic automatically allowed
+Example: AWS Security Groups
+
+Stateless  
+No connection tracking
+Must allow inbound + outbound explicitly
+Example: AWS NACLs
+
+🔵 16. Compare AWS Security Groups vs NACLs.
+Feature	Security Group	NACL
+Stateful	Yes	No
+Applied to	ENI/Instance	Subnet
+Rules	Allow only	Allow + deny
+Typical use	Instance-level security	Subnet-level filtering
+
+
+🔵 17. How would you troubleshoot a blocked port on a Linux server?
+Check listening ports
+
+bash
+sudo netstat -tulnp
+Check firewall
+
+bash
+sudo ufw status
+sudo iptables -L
+Check service
+
+bash
+systemctl status <service>
+Check security groups/NACLs (cloud)
+
+Use telnet or nc to test connectivity
+
+🔵 18. What is the purpose of ephemeral ports?
+Ephemeral ports (1024–65535):
+
+Used for outbound connections
+
+Allow multiple simultaneous connections
+
+NAT uses them to differentiate flows
+
+🔵 19. Explain recursive vs authoritative DNS.
+Recursive DNS  
+Finds the answer by querying multiple servers
+Example: ISP DNS, Google DNS (8.8.8.8)
+
+Authoritative DNS  
+Stores the actual DNS records
+Example: Route53 zone for your domain
+
+🔵 20. What is TTL, and how does DNS caching affect propagation?
+TTL = Time To Live (seconds)
+
+Controls how long DNS records stay cached.
+
+Low TTL → fast updates
+High TTL → slow propagation but reduced load
+
+Propagation delay happens because caches must expire before new records are fetched.
