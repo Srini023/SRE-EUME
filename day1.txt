@@ -1,0 +1,103 @@
+    1  sudo bash -c 'cat <<EOF > /etc/wsl.conf
+    2  [boot]
+    3  systemd=true
+    4  EOF'
+    5  exit
+    6  sudo do-release-upgrade
+    7  cat /etc/os-release
+    8  exit
+    9  docker ps
+   10  git --version
+   11  git config --global user.name Srini023
+   12  git config --global user.email "cena.bv29@gmail.com"
+   13  git clone https://github.com/Srini023/SRE-EUME
+   14  ls
+   15  cd SRE-EUME/
+   16  echo "# SRE-EUME" > README.md
+   17  git add README.md
+   18  git commit -m "Initial commit: added README"
+   19  git push -u origin main
+   20  ls
+   21  mkdir week01-cloud-linux-terraform
+   22  vim day01-linux
+   23  git add day01-linux 
+   24  git commit -m "day01"
+   25  git push origin main
+   26  mv day01-linux week01-cloud-linux-terraform/
+   27  ls
+   28  cd week01-cloud-linux-terraform/
+   29  ls
+   30  git add .
+   31  git commit -m "day001"
+   32  git push origin main
+   33  ssh-keygen -t ed25519 -C "cena.bv29@gmail.com"
+   34  eval "$(ssh-agent -s)"
+   35  ssh-add ~/.ssh/id_ed25519
+   36  cd ~/SRE-EUME
+   37  git remote set-url origin git@github.com:Srini023/SRE-EUME.git
+   38  git remote -v
+   39  git push origin main
+   40  ssh -vT git@github.com
+   41  cat ~/.ssh/id_ed25519.pub
+   42  ssh -T git@github.com
+   43  git push origin main
+   44  history tail -15
+   45  history tail - 15
+   46  history 15
+   47  clear
+   48  cd ..
+   49  ls
+   50  cd SRE-EUME/
+   51  ls
+   52  cd week01-cloud-linux-terraform/
+   53  ls
+   54  cd ..
+   55  ls
+   56  cat README.md 
+   57  clear
+   58  cd ..
+   59  git commit 128bdb2
+   60  cd SRE-EUME/
+   61  git commit 128bdb2
+   62  git revert 128bdb2
+   63  git status
+   64  git push origin main
+   65  cd week01-cloud-linux-terraform/
+   66  ls
+   67  day02-n/w
+   68  vim day02-n/w
+   69  ls
+   70  day02-nw
+   71  vim day02-nw
+   72  ls
+   73  mkdir day02terra
+   74  cd day02terra/
+   75  touch main.tf variables.tf outputs.tf provider.tf terraform.tfvars
+   76  ls
+   77  vim provider.tf 
+   78  vim variables.tf 
+   79  vim main.tf 
+   80  vim outputs.tf 
+   81  vim terraform.tfvars 
+   82  vim archidia.md
+   83  ls
+   84  cd ..
+   85  ls
+   86  mkdir day02terragcp
+   87  cd day02terragcp/
+   88  ls
+   89  touch main.tf variables.tf outputs.tf provider.tf terraform.tfvars
+   90  vim provider.tf 
+   91  vim variables.tf 
+   92  vim main.tf 
+   93  vim outputs.tf 
+   94  vim terraform.tfvars 
+   95  vim applyflowwork.md
+   96  vim archidiagcp.md
+   97  cd ..
+   98  git add 
+   99  git add .
+  100  git commit -m "2 aws and gcp"
+  101  git push origin main
+  102  history
+  103  history >> day1.txt
