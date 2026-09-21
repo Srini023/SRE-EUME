@@ -152,3 +152,245 @@ cat << 'EOF' > week1-day1/linux_troubleshooting_notes.md
 * Triage track: Inspect `/var/log/kern.log` or execute `dmesg -T | grep -i oom` to capture hardware execution terminations.
 EOF
 
+===============================================================================================
+
+
+🔹 Day 3 — Linux Internals & Troubleshooting
+Learning Objectives
+Deep dive into process management (syscalls, cgroups, namespaces)
+
+Understand kernel internals (scheduling, memory management, I/O)
+
+Master system debugging tools (strace, lsof, perf, sysdig)
+
+Practice real-world troubleshooting scenarios (CPU spikes, memory leaks, zombie processes)
+
+Core Topics
+Processes & Syscalls
+
+Lifecycle: fork → exec → wait → exit
+
+Signals (SIGKILL, SIGTERM, SIGSTOP)
+
+strace to trace syscalls
+
+Namespaces & Cgroups
+
+PID, NET, MNT, UTS namespaces
+
+Resource isolation with cgroups (CPU, memory, blkio)
+
+Hands-on: limit a process to 20% CPU
+
+Memory Management
+
+Virtual memory, paging, swap
+
+vmstat, free, /proc/meminfo
+
+Debugging memory leaks with valgrind
+
+Kernel & Scheduling
+
+Completely Fair Scheduler (CFS) basics
+
+Priority, nice values, real-time scheduling
+
+Tools: top, htop, schedstat
+
+Troubleshooting Toolkit
+
+lsof → open files
+
+netstat / ss → sockets
+
+perf → performance profiling
+
+sysdig → system call capture
+
+Hands-On Lab
+Scenario: Debugging a CPU Spike
+Run a stress test:
+
+bash
+stress --cpu 4 --timeout 60
+Monitor with top and htop.
+
+Use pidstat -p <PID> 1 to trace CPU usage.
+
+Attach strace -p <PID> to see syscalls.
+
+Kill the process with kill -9 <PID> and verify cleanup.
+
+Interview-Style Questions
+Explain how Linux namespaces enable containerization.
+
+What’s the difference between SIGTERM and SIGKILL?
+
+How does the Linux scheduler decide which process runs next?
+
+How would you debug a memory leak in a production system?
+
+What’s the role of /proc in troubleshooting?
+
+Portfolio Task
+Create a Day03-LinuxInternals.md in your GitHub repo.
+
+Document:
+
+Key commands + outputs (strace, lsof, perf)
+
+A CPU spike troubleshooting case study
+
+10 senior-level Linux internals Q&A
+
+👉 Next, I can provide you with:
+
+20 senior-level Linux internals interview questions with concise answers
+
+OR a full troubleshooting lab script (ready to run in WSL/Ubuntu).
+
+Which one would you like to tackle first for Day 3?
+
+20 senior-level Linux internals interview questions with concise answers and full troubleshooting lab script (ready to run in WSL/Ubuntu).
+Excellent choice, Srinivas — let’s make Day 3 interview‑ready and lab‑ready.
+Here’s your 20 senior‑level Linux internals Q&A plus a full troubleshooting lab script you can run directly in WSL/Ubuntu.
+
+📘 20 Senior‑Level Linux Internals Interview Questions (Concise Answers)
+Processes & Syscalls
+Explain fork vs exec.
+
+fork() → creates child process (copy).
+
+exec() → replaces process image with new program.
+
+What is a zombie process?
+
+Process finished but parent hasn’t read exit status. Entry remains in process table.
+
+Difference between SIGTERM and SIGKILL.
+
+SIGTERM → graceful termination (catchable).
+
+SIGKILL → force kill (uncatchable).
+
+How does strace help debugging?
+
+Traces syscalls, shows file/network access, signals.
+
+Explain context switch.
+
+Kernel saves CPU state of one process, loads another. Costly if frequent.
+
+Memory Management
+What is virtual memory?
+
+Abstraction: maps process memory to physical RAM + swap.
+
+Explain page cache.
+
+Kernel caches disk pages in RAM for faster I/O.
+
+What is swappiness?
+
+Kernel parameter controlling tendency to swap (0 = avoid, 100 = aggressive).
+
+Difference between hugepages and THP.
+
+Hugepages → manually allocated large pages.
+
+Transparent Hugepages → kernel auto‑manages.
+
+How to debug memory leaks?
+
+Tools: valgrind, pmap, /proc/<pid>/smaps.
+
+Kernel & Scheduling
+Explain CFS scheduler.
+
+Fair scheduling based on virtual runtime. Balances CPU across tasks.
+
+What is nice value?
+
+User‑set priority hint (−20 = highest, +19 = lowest).
+
+Difference between real‑time and normal scheduling.
+
+Real‑time (FIFO, RR) → strict priority.
+
+Normal → fair share via CFS.
+
+How to debug slow boot times?
+
+systemd-analyze, journalctl -b.
+
+Explain kernel panic.
+
+Fatal error in kernel, system halts. Debug via logs, crash dumps.
+
+Filesystems & I/O
+What is an inode?
+
+Metadata structure storing file attributes, not name.
+
+Difference between ext4 and XFS.
+
+ext4 → general purpose, journaling.
+
+XFS → high‑performance, large files.
+
+How does journaling work?
+
+Logs metadata changes before commit → crash recovery.
+
+What is lsof used for?
+
+Lists open files, sockets, pipes per process.
+
+How to debug I/O wait?
+
+Tools: iotop, pidstat -d, blktrace.
+
+
+Day 3 Troubleshooting Lab Script (WSL/Ubuntu)
+#!/bin/bash
+# Day 3 - Linux Internals Troubleshooting Lab
+
+echo "=== CPU Spike Simulation ==="
+stress --cpu 4 --timeout 30 &   # simulate load
+CPU_PID=$!
+echo "Stress PID: $CPU_PID"
+
+sleep 5
+echo "=== Monitor with top/htop ==="
+top -b -n 1 | head -20
+
+echo "=== PID CPU usage ==="
+pidstat -p $CPU_PID 1 5
+
+echo "=== Syscall tracing ==="
+strace -p $CPU_PID -c -q -w -o strace_output.txt &
+sleep 5
+kill -9 $CPU_PID
+echo "Stress process killed."
+
+echo "=== Memory Debugging ==="
+echo "Free memory snapshot:"
+free -h
+echo "VMStat snapshot:"
+vmstat 1 5
+
+echo "=== Open Files ==="
+lsof -p $$ | head -10
+
+echo "=== Network Sockets ==="
+ss -tulpn | head -10
+
+echo "=== Perf Profiling (short run) ==="
+perf stat sleep 2
+
+echo "=== Sysdig Capture (requires sudo) ==="
+sudo sysdig -n 10 evt.type=open
+
+echo "Lab complete. Check strace_output.txt for syscall summary."
+

@@ -1,0 +1,291 @@
+🔹 Day 3 — IAM Basics
+Learn: AWS IAM vs GCP IAM
+AWS IAM
+
+Global service, manages users, groups, roles, policies.
+
+Policies are JSON documents with Allow/Deny statements.
+
+Roles are assumed by services or users for temporary credentials.
+
+Fine-grained control via resource ARNs.
+
+GCP IAM
+
+Project-scoped, manages principals (users, service accounts), roles, policies.
+
+Roles are primitive (Owner, Editor, Viewer), predefined, or custom.
+
+Policies bind principals → roles → resources.
+
+Uses service accounts heavily for workloads.
+
+Task: Create Least Privilege IAM Roles
+Principle: Grant only what is necessary for a task.
+
+Example Use Cases
+AWS: Role for EC2 to read/write only to a specific S3 bucket.
+
+GCP: Service account for a VM that can only read from a specific Cloud Storage bucket.
+
+Deliverable: IAM Policy Examples
+AWS IAM Policy (Least Privilege S3 Access)
+json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::my-app-bucket/*"
+    }
+  ]
+}
+🔑 Grants only read/write to objects in my-app-bucket.
+
+GCP IAM Policy Binding (Least Privilege Storage Access)
+json
+{
+  "bindings": [
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:my-app-sa@srinisre023.iam.gserviceaccount.com"
+      ]
+    }
+  ]
+}
+🔑 Grants only read access to objects for the service account.
+
+Portfolio Task
+Create a file: Day03-IAM-Basics.md in your repo.
+
+Document:
+
+Comparison table: AWS IAM vs GCP IAM.
+
+Two least privilege examples (above).
+
+Short note on best practices:
+
+Use roles instead of long-lived keys.
+
+Apply principle of least privilege.
+
+Rotate credentials regularly.
+
+Monitor with IAM Access Analyzer (AWS) / Policy Troubleshooter (GCP).
+
+👉 Next, I can expand this into a ready-to-commit GitHub portfolio file with polished formatting (tables, code blocks, best practices section). Do you want me to generate that Day03-IAM-Basics.md file for you now?
+
+ready-to-commit GitHub portfolio file
+Here’s your ready‑to‑commit portfolio file for Day 3 — IAM Basics. You can save this as Day03-IAM-Basics.md in your GitHub repo.
+
+markdown
+# Day 3 — IAM Basics
+
+## 📘 Learning Objectives
+- Understand differences between **AWS IAM** and **GCP IAM**
+- Practice designing **least privilege roles**
+- Deliver IAM policy examples for portfolio use
+
+---
+
+## 🔹 AWS IAM vs GCP IAM
+
+| Feature                | AWS IAM                                                                 | GCP IAM                                                                 |
+|-------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| Scope                  | Global service                                                         | Project / resource scoped                                               |
+| Entities               | Users, Groups, Roles, Policies                                          | Principals (users, service accounts), Roles, Policies                   |
+| Role Types             | Roles assumed by services/users                                         | Primitive (Owner, Editor, Viewer), Predefined, Custom                   |
+| Policy Format          | JSON with Allow/Deny + resource ARNs                                    | Bindings: Principal → Role → Resource                                   |
+| Workload Identity      | Roles with temporary credentials                                        | Service accounts bound to workloads                                     |
+| Tools                  | IAM Access Analyzer, CloudTrail                                         | Policy Troubleshooter, Audit Logs                                       |
+
+---
+
+## 🔹 Task: Create Least Privilege IAM Roles
+
+Principle: **Grant only what is necessary** for a task.
+
+### Example 1 — AWS IAM Policy (S3 Least Privilege)
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::my-app-bucket/*"
+    }
+  ]
+}
+✅ Grants read/write only to objects in my-app-bucket.
+
+Example 2 — GCP IAM Policy Binding (Storage Least Privilege)
+json
+{
+  "bindings": [
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:my-app-sa@srinisre023.iam.gserviceaccount.com"
+      ]
+    }
+  ]
+}
+✅ Grants read‑only access to Cloud Storage objects for the service account.
+
+🔹 Best Practices
+Use roles/service accounts instead of long‑lived keys
+
+Apply principle of least privilege
+
+Rotate credentials regularly
+
+Monitor with IAM Access Analyzer (AWS) / Policy Troubleshooter (GCP)
+
+Prefer managed policies for consistency, use custom policies only when necessary
+
+📂 Portfolio Deliverable
+This file demonstrates:
+
+Comparative understanding of IAM across AWS & GCP
+
+Practical least privilege policy examples
+
+Best practices for secure identity management
+
+Code
+
+---
+
+This file is polished and recruiter‑friendly — concise comparison, hands‑on examples, and best practices.  
+
+👉 Do you want me to also generate a **Day03 Terraform IAM project** (AWS + GCP) so you can show actual infrastructure‑as‑code for these policies in your portfolio? That would complement this Markdown nicely.
+Day03 Terraform IAM project
+Here’s your Day03 Terraform IAM Project — portfolio‑ready, covering both AWS and GCP with least‑privilege IAM roles.
+
+📂 Day03-Terraform-IAM
+AWS IAM Role Example (S3 Least Privilege)
+main.tf
+
+hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_iam_role" "s3_app_role" {
+  name               = "s3-app-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "s3_rw_policy" {
+  name        = "s3-rw-policy"
+  description = "Least privilege S3 read/write policy"
+  policy      = data.aws_iam_policy_document.s3_rw.json
+}
+
+data "aws_iam_policy_document" "s3_rw" {
+  statement {
+    actions   = ["s3:GetObject", "s3:PutObject"]
+    resources = ["arn:aws:s3:::my-app-bucket/*"]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "attach" {
+  role       = aws_iam_role.s3_app_role.name
+  policy_arn = aws_iam_policy.s3_rw_policy.arn
+}
+GCP IAM Service Account Example (Storage Least Privilege)
+main.tf
+
+hcl
+provider "google" {
+  project = "srinisre023"
+  region  = "us-central1"
+}
+
+resource "google_service_account" "app_sa" {
+  account_id   = "my-app-sa"
+  display_name = "App Service Account"
+}
+
+resource "google_project_iam_binding" "storage_viewer" {
+  project = "srinisre023"
+  role    = "roles/storage.objectViewer"
+
+  members = [
+    "serviceAccount:${google_service_account.app_sa.email}"
+  ]
+}
+Step-by-Step Apply Workflow
+1
+Initialize Terraform
+Prepare the working directory for IAM project.
+
+Run terraform init
+
+Downloads provider plugins
+
+Sets up backend state
+
+2
+Validate Configuration
+Ensure syntax and references are correct.
+
+Run terraform validate
+
+Fix any errors before proceeding
+
+3
+Plan IAM Changes
+Preview resources to be created or modified.
+
+Run terraform plan
+
+Review IAM role/policy bindings
+
+Confirm least privilege scope
+
+4
+Apply IAM Project
+Provision IAM roles and policies.
+
+Run terraform apply
+
+Type yes to confirm
+
+Creates AWS IAM role + policy
+
+Creates GCP service account + binding
+
+5
+Verify IAM Roles
+Confirm least privilege access is enforced.
+
+AWS: aws iam list-attached-role-policies --role-name s3-app-role
+
+GCP: gcloud projects get-iam-policy srinisre023
+
+Test workload access to S3/Storage
+
+=============================================================================================================================================================================
+
+
