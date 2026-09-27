@@ -1,0 +1,57 @@
+🧠 Learn: Core Concepts1. ProvidersA Provider is a plugin that Terraform uses to translate your code into API calls to a specific cloud platform or service (such as AWS, Azure, or Google Cloud).Without a provider, Terraform does not know how to interact with the target environment.You configure providers by declaring them in your root configuration and specifying details like regions or version limits.2. ResourcesA Resource is the foundational building block of infrastructure in Terraform. It describes an explicit piece of infrastructure, such as an EC2 virtual machine, an S3 storage bucket, or a virtual network.Every resource has a block configuration containing arguments (inputs like sizing or images).Every resource also exposes attributes (outputs like a generated ID or public IP) that you can reference elsewhere.3. VariablesVariables serve as the input parameters for your configuration files. Instead of hardcoding details like t2.micro or explicit AMI strings directly into your code, variables allow you to inject values dynamically. This makes your infrastructure code modular, reusable, and easy to adjust without altering core application logic.🛠️ Task & Deliverable: Terraform Module SkeletonA standardized Terraform module relies on three fundamental files to organize configuration, inputs, and outputs:main.tf — The primary file where providers and resources are declared.variables.tf — The schema file detailing all expected inputs.outputs.tf — The file specifying what data to expose back to the user after provisioning.Here is your complete skeleton setup to spin up an AWS EC2 Instance:📁 variables.tfThis file defines the input configurations. It lets users customize the region, image ID, and server sizing safely.hclvariable "aws_region" {
+  description = "The AWS region to deploy the EC2 instance into"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "ami_id" {
+  description = "The Amazon Machine Image (AMI) ID for the instance"
+  type        = string
+  default     = "ami-0c7217cdde317cfec" # Example Ubuntu AMI ID for us-east-1
+}
+
+variable "instance_type" {
+  description = "The size/type of the EC2 instance"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "instance_name" {
+  description = "Value for the Name tag of the EC2 instance"
+  type        = string
+  default     = "MyDay4EC2Instance"
+}
+Use code with caution.📁 main.tfThis file invokes the AWS provider and constructs the resource using the variables declared above.hcl# 1. Configure the Terraform block and required provider
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+# 2. Configure the AWS Provider block
+provider "aws" {
+  region = var.aws_region
+}
+
+# 3. Define the EC2 Instance Resource
+resource "aws_instance" "web_server" {
+  ami           = var.ami_id
+  instance_type = var.instance_type
+
+  tags = {
+    Name = var.instance_name
+  }
+}
+Use code with caution.📁 outputs.tfThis captures and exposes critical operational data—like the public IP of the newly created server—once terraform apply finishes executing.hcloutput "instance_id" {
+  description = "The ID of the provisioned EC2 instance"
+  value       = aws_instance.web_server.id
+}
+
+output "instance_public_ip" {
+  description = "The public IP address of the provisioned EC2 instance"
+  value       = aws_instance.web_server.public_ip
+}
+Use code with caution.🚀 How to Execute Your ModuleTo test your new module skeleton locally on your machine, navigate to the folder containing these files via your terminal and run the following command cycle:terraform init: Downloads the AWS provider plugin and initializes your workspace working directory.terraform plan: Simulates the execution and previews exactly what resources will be added, changed, or destroyed without modifying live infrastructure.terraform apply: Executes the API calls to AWS to provision your live EC2 instance.terraform destroy: Cleans up and deletes the instance when you are finished testing to prevent unexpected cloud bills.
