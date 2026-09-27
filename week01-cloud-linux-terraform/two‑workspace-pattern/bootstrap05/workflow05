@@ -1,0 +1,24 @@
+Bootstrap workspace
+
+cd bootstrap
+terraform init
+terraform apply -auto-approve
+→ Creates S3/DynamoDB or GCS bucket tracked by Terraform.
+
+
+
+Main workspace
+
+cd ../main
+terraform init -reconfigure
+terraform apply
+→ Migrates state into the remote backend provisioned by bootstrap.
+
+This pattern ensures:
+
+Backend infra is tracked by Terraform (not just CLI).
+
+You can destroy/recreate backend cleanly if needed.
+
+Separation of concerns: bootstrap manages state infra, main manages workloads.
+
