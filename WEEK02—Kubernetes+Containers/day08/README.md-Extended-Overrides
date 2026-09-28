@@ -1,0 +1,35 @@
+🛠 Environment Overrides
+Docker Compose supports multiple files:
+
+Base file (docker-compose.yml) → defines common services.
+
+Override file (docker-compose.override.yml) → applied automatically for dev.
+
+Production file (docker-compose.prod.yml) → applied explicitly.
+
+
+🚀 Usage
+
+# Development (default: uses docker-compose.yml + docker-compose.override.yml)
+docker-compose up --build -d
+
+# Production (explicitly specify prod file)
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+
+
+🔗 Key Differences
+
+
+Environment	Backend Command	DB Name	Logging
+Development	python app.py --reload	appdb_dev	Debug
+Production	gunicorn with 4 workers	appdb	Error
+
+
+📉 Benefits
+Clean separation of dev vs prod configs.
+
+No duplication — base file holds shared definitions.
+
+Flexibility — easy to add staging/test overrides later.
+
+

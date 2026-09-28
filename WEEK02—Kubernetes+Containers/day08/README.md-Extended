@@ -1,0 +1,42 @@
+🛠 Three‑Tier Architecture
+This setup now includes:
+
+Frontend (Nginx) — serves static assets and proxies API requests.
+
+Backend (Python Flask) — provides API endpoints and connects to DB.
+
+Database (Postgres) — persistent data storage.
+
+
+🚀 Run Full Stack
+
+docker-compose up --build -d
+
+Frontend: http://localhost:8080
+
+Backend API: http://localhost:8080/api/users
+
+Database: accessible at localhost:5432 (user: postgres, password: postgres)
+
+🔗 Networking
+All services share app-network.
+
+Backend connects to DB via service name db.
+
+Frontend proxies API requests to backend (api:5000).
+
+💾 Volumes
+nginx-logs → persists frontend logs.
+
+db-data → persists Postgres data.
+
+📉 Optimization
+Lightweight base images (nginx:alpine, python:3.11-slim, postgres:15-alpine).
+
+Multi‑stage build keeps frontend image small.
+
+Compose orchestrates networking and persistence automatically.
+
+This gives you a complete three‑tier Docker Compose stack: frontend, backend, and database
+
+
