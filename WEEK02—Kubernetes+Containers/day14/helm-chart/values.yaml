@@ -1,0 +1,27 @@
+replicaCount: 3
+
+image:
+  repository: nginxdemos/hello
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+
+config:
+  GREETING: "Hello from Helm!"
+
+ingress:
+  enabled: false
+  className: nginx
+  host: hello.srini.local
+  tlsSecret: hello-api-tls
+
+hpa:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPU: 70
+

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hello-api.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "hello-api.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "hello-api.name" . }}
+    spec:
+      containers:
+        - name: hello-api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 80
+          env:
+            - name: GREETING
+              value: {{ .Values.config.GREETING | quote }}
+

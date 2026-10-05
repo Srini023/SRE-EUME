@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-api
+  labels:
+    app: hello-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-api
+  template:
+    metadata:
+      labels:
+        app: hello-api
+    spec:
+      containers:
+        - name: hello-api
+          image: nginxdemos/hello:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: GREETING
+              valueFrom:
+                configMapKeyRef:
+                  name: hello-config
+                  key: GREETING
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: hello-api
+description: A simple microservice deployed via Helm
+type: application
+version: 0.1.0
+appVersion: "1.0"
+

@@ -1,0 +1,5 @@
+Your hello-api Helm release is deployed.
+
+To access the service:
+  kubectl get svc {{ include "hello-api.fullname" . }}
+
